@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Daily Expense Tracker - Dashboard</title>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <link rel="stylesheet" href="../css/app.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+</head>
+<body class="app-body">
+
+<div class="app-wrap">
+
+  <!-- ══ SIDEBAR ══ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-brand">
+      <div class="sb-logo">💸</div>
+      <div>
+        <div class="sb-title">Daily Expense</div>
+        <div class="sb-sub">Tracker Pro</div>
+      </div>
+    </div>
+
+    <nav class="sb-nav">
+      <button class="sb-btn active" onclick="switchTab('dashboard')" id="nav-dashboard"><span>🏠</span> Dashboard</button>
+      <button class="sb-btn" onclick="switchTab('expenses')" id="nav-expenses"><span>💳</span> Expenses</button>
+      <button class="sb-btn" onclick="switchTab('ledger')" id="nav-ledger"><span>🤝</span> Ledger</button>
+      <button class="sb-btn" onclick="switchTab('budget')" id="nav-budget"><span>🎯</span> Budget</button>
+      <button class="sb-btn" onclick="switchTab('reports')" id="nav-reports"><span>📊</span> Reports</button>
+      <button class="sb-btn" onclick="switchTab('profile')" id="nav-profile"><span>👤</span> Profile</button>
+    </nav>
+
+    <div class="sb-footer">
+      <div class="sb-user-info" id="sb-user-info">
+        <div id="sb-av-wrap"></div>
+        <div class="sb-user-text">
+          <div class="sb-uname" id="sb-uname"></div>
+          <div class="sb-uemail" id="sb-uemail"></div>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">🚪 Logout</button>
+    </div>
+  </aside>
+
+  <!-- ══ MAIN CONTENT ══ -->
+  <div class="main-col">
+
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <div>
+        <div class="topbar-title" id="topbar-title">Dashboard 🏠</div>
+        <div class="topbar-date" id="topbar-date"></div>
+      </div>
+      <button class="btn-pdf" onclick="printReport()">🖨️ Print / PDF</button>
+    </header>
+
+    <!-- CONTENT AREA -->
+    <main class="content" id="content">
+
+      <!-- ── DASHBOARD ── -->
+      <div id="tab-dashboard" class="tab-page">
+        <div class="stats-grid" id="dash-stats"></div>
+        <div class="two-col">
+          <div class="card">
+            <div class="card-title">📊 Category Breakdown</div>
+            <div id="dash-cats"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">🕐 Recent Expenses</div>
+            <div id="dash-recent"></div>
+          </div>
+        </div>
+        <div class="card" id="dash-pending-wrap" style="margin-top:14px">
+          <div class="card-title">⏳ Pending Settlements</div>
+          <div id="dash-pending"></div>
+        </div>
+      </div>
+
+      <!-- ── EXPENSES ── -->
+      <div id="tab-expenses" class="tab-page hidden">
+        <div class="top-actions">
+          <button class="btn-add" id="btn-toggle-exp" onclick="toggleExpForm()">✨ Add New Expense</button>
+        </div>
+
+        <div id="exp-form-panel" class="form-panel hidden">
+          <div class="panel-title">➕ New Expense</div>
+          <div class="form-grid2">
+            <div class="field-wrap"><label class="field-lbl">💰 Amount (₹)</label><input id="e-amt" type="number" placeholder="0.00" min="0"/></div>
+            <div class="field-wrap"><label class="field-lbl">📅 Date</label><input id="e-date" type="date"/></div>
+            <div class="field-wrap full"><label class="field-lbl">📝 Description</label><input id="e-desc" placeholder="What did you spend on?"/></div>
+            <div class="field-wrap"><label class="field-lbl">🏷️ Category</label><select id="e-cat"></select></div>
+            <div class="field-wrap"><label class="field-lbl">💳 Payment Mode</label><select id="e-mode"></select></div>
+          </div>
+          <div class="form-actions">
+            <button class="btn-save" onclick="addExpense()">Save Expense →</button>
+            <button class="btn-cancel" onclick="toggleExpForm()">Cancel</button>
+          </div>
+        </div>
+
+        <div class="filter-bar">
+          <div class="filter-item grow"><label class="field-lbl">🔍 Search</label><input id="f-search" placeholder="Search expenses..." oninput="renderExpenses()"/></div>
+          <div class="filter-item"><label class="field-lbl">Category</label><select id="f-cat" onchange="renderExpenses()"><option value="">All</option></select></div>
+          <div class="filter-item"><label class="field-lbl">From</label><input id="f-from" type="date" onchange="renderExpenses()"/></div>
+          <div class="filter-item"><label class="field-lbl">To</label><input id="f-to" type="date" onchange="renderExpenses()"/></div>
+          <button class="btn-clear" onclick="clearFilters()">Clear</button>
+        </div>
+
+        <div class="summary-bar">
+          <span id="exp-count"></span>
+          <span class="summary-total" id="exp-total"></span>
+        </div>
+        <div class="card no-pad"><div id="exp-list"></div></div>
+      </div>
+
+      <!-- ── LEDGER ── -->
+      <div id="tab-ledger" class="tab-page hidden">
+        <div class="stats-grid three-col" id="led-stats"></div>
+        <div class="top-actions" style="margin-top:16px">
+          <button class="btn-add" id="btn-toggle-led" onclick="toggleLedForm()">➕ Add Entry</button>
+        </div>
+
+        <div id="led-form-panel" class="form-panel hidden">
+          <div class="panel-title">➕ New Ledger Entry</div>
+          <div class="type-toggle">
+            <button id="lt-lent" class="type-btn active-lent" onclick="setLedType('lent')">⬆️ I Lent</button>
+            <button id="lt-bor" class="type-btn" onclick="setLedType('borrowed')">⬇️ I Borrowed</button>
+          </div>
+          <div class="form-grid2">
+            <div class="field-wrap"><label class="field-lbl">👤 Person Name</label><input id="l-name" placeholder="Name"/></div>
+            <div class="field-wrap"><label class="field-lbl">💰 Amount (₹)</label><input id="l-amt" type="number" placeholder="0.00"/></div>
+            <div class="field-wrap"><label class="field-lbl">📅 Date</label><input id="l-date" type="date"/></div>
+            <div class="field-wrap"><label class="field-lbl">📝 Note</label><input id="l-note" placeholder="Reason (optional)"/></div>
+          </div>
+          <div class="form-actions">
+            <button class="btn-save" onclick="addLedger()">Save →</button>
+            <button class="btn-cancel" onclick="toggleLedForm()">Cancel</button>
+          </div>
+        </div>
+
+        <div class="tab-pills">
+          <button class="pill active" onclick="setLedView('all')" id="lv-all">All</button>
+          <button class="pill" onclick="setLedView('lent')" id="lv-lent">⬆️ Lent</button>
+          <button class="pill" onclick="setLedView('borrowed')" id="lv-borrowed">⬇️ Borrowed</button>
+          <button class="pill" onclick="setLedView('pending')" id="lv-pending">⏳ Pending</button>
+        </div>
+        <div class="card no-pad"><div id="led-list"></div></div>
+      </div>
+
+      <!-- ── BUDGET ── -->
+      <div id="tab-budget" class="tab-page hidden">
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-title">🎯 Set Monthly Budget</div>
+          <div class="filter-bar" style="margin-bottom:0;border:none;padding:0;background:transparent">
+            <div class="filter-item grow"><label class="field-lbl">Category</label><select id="b-cat"></select></div>
+            <div class="filter-item grow"><label class="field-lbl">💰 Limit (₹)</label><input id="b-limit" type="number" placeholder="5000"/></div>
+            <button class="btn-save" style="margin-top:22px" onclick="saveBudget()">Save</button>
+          </div>
+        </div>
+        <div id="budget-grid" class="budget-grid"></div>
+      </div>
+
+      <!-- ── REPORTS ── -->
+      <div id="tab-reports" class="tab-page hidden">
+        <div class="filter-bar" style="margin-bottom:20px">
+          <div class="filter-item"><label class="field-lbl">📅 Select Month</label><select id="rp-month" onchange="renderReports()"></select></div>
+          <button class="btn-pdf" style="margin-top:22px" onclick="printReport()">📄 Download PDF</button>
+        </div>
+        <div class="stats-grid" id="rp-stats"></div>
+        <div class="two-col" style="margin-top:14px">
+          <div class="card"><div class="card-title">📊 Category Breakdown</div><div id="rp-cats"></div></div>
+          <div class="card"><div class="card-title">💳 Payment Modes</div><div id="rp-modes"></div></div>
+        </div>
+      </div>
+
+      <!-- ── PROFILE ── -->
+      <div id="tab-profile" class="tab-page hidden" style="max-width:700px">
+        <div class="card no-pad profile-card">
+          <div class="profile-banner" id="profile-banner" onclick="bannerClick()">
+            <div class="banner-overlay" id="banner-overlay">🖼️ Change Banner</div>
+          </div>
+          <input type="file" accept="image/*" id="bannerInput" style="display:none" onchange="loadBanner(this)"/>
+          <input type="file" accept="image/*" id="avatarInput" style="display:none" onchange="loadAvatar(this)"/>
+
+          <div class="profile-body">
+            <div class="profile-top-row">
+              <div class="avatar-wrap">
+                <div id="prof-av"></div>
+                <div class="avatar-edit-btn hidden" id="avatar-edit-btn" onclick="avatarInput.click()">📷</div>
+              </div>
+              <div class="profile-name-col">
+                <div class="prof-name" id="prof-name-display"></div>
+                <div class="prof-sub" id="prof-sub-display"></div>
+              </div>
+              <div id="prof-actions"></div>
+            </div>
+
+            <!-- VIEW MODE -->
+            <div id="prof-view">
+              <div class="info-grid">
+                <div class="info-chip"><div class="ic-lbl">📧 Email</div><div class="ic-val" id="pv-email"></div></div>
+                <div class="info-chip"><div class="ic-lbl">📱 Phone</div><div class="ic-val" id="pv-phone"></div></div>
+                <div class="info-chip"><div class="ic-lbl">👤 Username</div><div class="ic-val" id="pv-user"></div></div>
+                <div class="info-chip"><div class="ic-lbl">📅 Joined</div><div class="ic-val" id="pv-join"></div></div>
+                <div class="info-chip full" id="bio-chip"><div class="ic-lbl">💬 Bio</div><div class="ic-val" id="pv-bio"></div></div>
+              </div>
+            </div>
+
+            <!-- EDIT MODE -->
+            <div id="prof-edit" class="hidden">
+              <div class="form-grid2">
+                <div class="field-wrap full"><label class="field-lbl">👤 Full Name</label><input id="pe-name"/></div>
+                <div class="field-wrap"><label class="field-lbl">📧 Email</label><input id="pe-email" type="email"/></div>
+                <div class="field-wrap"><label class="field-lbl">📱 Phone</label><input id="pe-phone" placeholder="+91 XXXXXXXXXX"/></div>
+                <div class="field-wrap full"><label class="field-lbl">💬 Bio</label><textarea id="pe-bio" rows="2" placeholder="Tell something about yourself..."></textarea></div>
+              </div>
+              <div>
+                <label class="field-lbl" style="margin-top:14px;display:block">🎨 Banner Color</label>
+                <div class="grad-picker" id="grad-picker"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="stats-grid three-col" id="prof-stats" style="margin-top:14px"></div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="../js/db.js"></script>
+<script src="../js/app.js"></script>
+<script src="../js/dashboard.js"></script>
+<script src="../js/expenses.js"></script>
+<script src="../js/ledger.js"></script>
+<script src="../js/budget.js"></script>
+<script src="../js/reports.js"></script>
+<script src="../js/profile.js"></script>
+<script src="../js/print.js"></script>
+</body>
+</html>
